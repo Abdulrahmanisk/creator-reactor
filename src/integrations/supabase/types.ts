@@ -9,7 +9,169 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      expenses: {
+        Row: {
+          amount: number
+          approval_status: string
+          category: Database["public"]["Enums"]["expense_category"]
+          created_at: string
+          description: string
+          id: string
+          payee: string
+          payment_method: string | null
+          program_id: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          approval_status?: string
+          category: Database["public"]["Enums"]["expense_category"]
+          created_at?: string
+          description: string
+          id?: string
+          payee: string
+          payment_method?: string | null
+          program_id?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          approval_status?: string
+          category?: Database["public"]["Enums"]["expense_category"]
+          created_at?: string
+          description?: string
+          id?: string
+          payee?: string
+          payment_method?: string | null
+          program_id?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "expenses_program_id_fkey"
+            columns: ["program_id"]
+            isOneToOne: false
+            referencedRelation: "programs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      funding: {
+        Row: {
+          amount: number
+          contact_email: string | null
+          contact_name: string | null
+          created_at: string
+          id: string
+          program_id: string | null
+          source: string
+          type: Database["public"]["Enums"]["funding_type"]
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          contact_email?: string | null
+          contact_name?: string | null
+          created_at?: string
+          id?: string
+          program_id?: string | null
+          source: string
+          type: Database["public"]["Enums"]["funding_type"]
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          contact_email?: string | null
+          contact_name?: string | null
+          created_at?: string
+          id?: string
+          program_id?: string | null
+          source?: string
+          type?: Database["public"]["Enums"]["funding_type"]
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "funding_program_id_fkey"
+            columns: ["program_id"]
+            isOneToOne: false
+            referencedRelation: "programs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string
+          display_name: string | null
+          id: string
+          theme_preference: string | null
+          updated_at: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string
+          display_name?: string | null
+          id: string
+          theme_preference?: string | null
+          updated_at?: string
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string
+          display_name?: string | null
+          id?: string
+          theme_preference?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      programs: {
+        Row: {
+          budget: number
+          created_at: string
+          description: string | null
+          end_date: string | null
+          id: string
+          name: string
+          start_date: string | null
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          budget: number
+          created_at?: string
+          description?: string | null
+          end_date?: string | null
+          id?: string
+          name: string
+          start_date?: string | null
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          budget?: number
+          created_at?: string
+          description?: string | null
+          end_date?: string | null
+          id?: string
+          name?: string
+          start_date?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -18,7 +180,13 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      expense_category:
+        | "Equipment"
+        | "Professional Services"
+        | "Travel"
+        | "Supplies"
+        | "Other"
+      funding_type: "Grant" | "Investment" | "Internal" | "Other"
     }
     CompositeTypes: {
       [_ in never]: never
