@@ -1,137 +1,198 @@
 
+import { useState } from "react";
 import { motion } from "framer-motion";
-import { ArrowRight, LineChart, LogOut, Shield, Zap } from "lucide-react";
+import { LogOut, Plus } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/components/ui/use-toast";
 
 const Index = () => {
-  const { signOut } = useAuth();
+  const { signOut, user } = useAuth();
+  const { toast } = useToast();
+  const [isCreating, setIsCreating] = useState(false);
+  const [newProgramName, setNewProgramName] = useState("");
+  const [newProgramBudget, setNewProgramBudget] = useState("");
+
+  // Fetch programs
+  const { data: programs, isLoading } = useQuery({
+    queryKey: ["programs"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("programs")
+        .select("*")
+        .order("created_at", { ascending: false });
+
+      if (error) {
+        toast({
+          title: "Error fetching programs",
+          description: error.message,
+          variant: "destructive",
+        });
+        throw error;
+      }
+
+      return data;
+    },
+  });
+
+  // Create new program
+  const handleCreateProgram = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newProgramName || !newProgramBudget) {
+      toast({
+        title: "Missing information",
+        description: "Please provide both a name and budget for the program.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      const { error } = await supabase.from("programs").insert({
+        name: newProgramName,
+        budget: parseFloat(newProgramBudget),
+        user_id: user?.id,
+      });
+
+      if (error) throw error;
+
+      setNewProgramName("");
+      setNewProgramBudget("");
+      setIsCreating(false);
+      toast({
+        title: "Success",
+        description: "Program created successfully",
+      });
+    } catch (error: any) {
+      toast({
+        title: "Error creating program",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  };
 
   return (
-    <div className="min-h-screen w-full overflow-hidden">
+    <div className="min-h-screen w-full bg-gray-50">
       {/* Navigation */}
-      <nav className="container mx-auto px-4 py-4">
-        <div className="flex justify-end">
-          <Button
-            variant="ghost"
-            onClick={() => signOut()}
-            className="text-gray-600 hover:text-gray-900"
-          >
-            <LogOut className="mr-2 h-4 w-4" />
-            Sign Out
-          </Button>
+      <nav className="bg-white border-b">
+        <div className="container mx-auto px-4 py-4">
+          <div className="flex justify-between items-center">
+            <h1 className="text-xl font-semibold">Program Management</h1>
+            <Button
+              variant="ghost"
+              onClick={() => signOut()}
+              className="text-gray-600 hover:text-gray-900"
+            >
+              <LogOut className="mr-2 h-4 w-4" />
+              Sign Out
+            </Button>
+          </div>
         </div>
       </nav>
 
-      {/* Hero Section */}
-      <section className="container mx-auto px-4 pt-20 pb-32">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-          className="text-center max-w-4xl mx-auto space-y-6"
-        >
-          <div className="inline-flex items-center px-4 py-1.5 rounded-full border border-gray-200 bg-white/50 backdrop-blur-sm mb-8">
-            <span className="text-sm font-medium text-gray-600">
-              Introducing something amazing
-            </span>
-          </div>
-          <h1 className="hero-text">
-            Create beautiful experiences that inspire
-          </h1>
-          <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-            Transform your ideas into reality with our powerful platform. Build, iterate, and scale with confidence.
-          </p>
-          <div className="flex items-center justify-center gap-4 pt-8">
-            <button className="button-primary">
-              Get Started
-              <ArrowRight className="ml-2 inline-block w-4 h-4" />
-            </button>
-            <button className="button-secondary">
-              Learn More
-            </button>
-          </div>
-        </motion.div>
-      </section>
+      {/* Main Content */}
+      <main className="container mx-auto px-4 py-8">
+        <div className="mb-8 flex justify-between items-center">
+          <h2 className="text-2xl font-bold text-gray-900">Your Programs</h2>
+          <Button onClick={() => setIsCreating(true)}>
+            <Plus className="mr-2 h-4 w-4" />
+            New Program
+          </Button>
+        </div>
 
-      {/* Features Section */}
-      <section className="bg-gray-50/50 py-32">
-        <div className="container mx-auto px-4">
+        {/* Create Program Form */}
+        {isCreating && (
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.5 }}
-            className="text-center max-w-2xl mx-auto mb-20"
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mb-8 p-6 bg-white rounded-lg shadow-sm"
           >
-            <h2 className="section-text mb-6">
-              Crafted for excellence
-            </h2>
-            <p className="text-lg text-gray-600">
-              Every detail has been carefully considered to provide you with the best possible experience.
-            </p>
+            <form onSubmit={handleCreateProgram} className="space-y-4">
+              <div>
+                <label
+                  htmlFor="programName"
+                  className="block text-sm font-medium text-gray-700"
+                >
+                  Program Name
+                </label>
+                <input
+                  type="text"
+                  id="programName"
+                  value={newProgramName}
+                  onChange={(e) => setNewProgramName(e.target.value)}
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+                  placeholder="Enter program name"
+                />
+              </div>
+              <div>
+                <label
+                  htmlFor="programBudget"
+                  className="block text-sm font-medium text-gray-700"
+                >
+                  Budget
+                </label>
+                <input
+                  type="number"
+                  id="programBudget"
+                  value={newProgramBudget}
+                  onChange={(e) => setNewProgramBudget(e.target.value)}
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
+                  placeholder="Enter budget amount"
+                  min="0"
+                  step="0.01"
+                />
+              </div>
+              <div className="flex justify-end gap-4">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  onClick={() => setIsCreating(false)}
+                >
+                  Cancel
+                </Button>
+                <Button type="submit">Create Program</Button>
+              </div>
+            </form>
           </motion.div>
+        )}
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
-            {features.map((feature, index) => (
+        {/* Programs List */}
+        {isLoading ? (
+          <div className="text-center py-8">Loading programs...</div>
+        ) : programs?.length === 0 ? (
+          <div className="text-center py-8 text-gray-500">
+            No programs found. Create your first program to get started!
+          </div>
+        ) : (
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+            {programs?.map((program) => (
               <motion.div
-                key={feature.title}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.5, delay: index * 0.1 }}
-                className="feature-card"
+                key={program.id}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="bg-white p-6 rounded-lg shadow-sm hover:shadow-md transition-shadow"
               >
-                <feature.icon className="w-10 h-10 mb-4 text-gray-900" />
-                <h3 className="text-xl font-semibold mb-2">{feature.title}</h3>
-                <p className="text-gray-600">{feature.description}</p>
+                <h3 className="text-lg font-semibold mb-2">{program.name}</h3>
+                <p className="text-gray-600 mb-4">
+                  Budget: ${program.budget.toLocaleString()}
+                </p>
+                <div className="flex justify-between items-center text-sm text-gray-500">
+                  <span>Status: {program.status}</span>
+                  <span>
+                    Created:{" "}
+                    {new Date(program.created_at).toLocaleDateString()}
+                  </span>
+                </div>
               </motion.div>
             ))}
           </div>
-        </div>
-      </section>
-
-      {/* CTA Section */}
-      <section className="container mx-auto px-4 py-32">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.5 }}
-          className="text-center max-w-3xl mx-auto"
-        >
-          <h2 className="section-text mb-6">
-            Ready to get started?
-          </h2>
-          <p className="text-lg text-gray-600 mb-8">
-            Join thousands of creators who are already building amazing things.
-          </p>
-          <button className="button-primary">
-            Start Building Now
-            <ArrowRight className="ml-2 inline-block w-4 h-4" />
-          </button>
-        </motion.div>
-      </section>
+        )}
+      </main>
     </div>
   );
 };
-
-const features = [
-  {
-    title: "Lightning Fast",
-    description: "Experience incredible performance with our optimized platform.",
-    icon: Zap,
-  },
-  {
-    title: "Powerful Analytics",
-    description: "Gain valuable insights with comprehensive analytics tools.",
-    icon: LineChart,
-  },
-  {
-    title: "Enterprise Security",
-    description: "Your data is protected with industry-leading security measures.",
-    icon: Shield,
-  },
-];
 
 export default Index;
