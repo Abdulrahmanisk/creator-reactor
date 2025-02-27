@@ -1,10 +1,28 @@
 
 import { motion } from "framer-motion";
-import { ArrowRight, LineChart, Shield, Zap } from "lucide-react";
+import { ArrowRight, LineChart, LogOut, Shield, Zap } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
+import { Button } from "@/components/ui/button";
 
 const Index = () => {
+  const { signOut } = useAuth();
+
   return (
     <div className="min-h-screen w-full overflow-hidden">
+      {/* Navigation */}
+      <nav className="container mx-auto px-4 py-4">
+        <div className="flex justify-end">
+          <Button
+            variant="ghost"
+            onClick={() => signOut()}
+            className="text-gray-600 hover:text-gray-900"
+          >
+            <LogOut className="mr-2 h-4 w-4" />
+            Sign Out
+          </Button>
+        </div>
+      </nav>
+
       {/* Hero Section */}
       <section className="container mx-auto px-4 pt-20 pb-32">
         <motion.div
