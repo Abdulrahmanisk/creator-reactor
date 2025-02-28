@@ -1,7 +1,7 @@
 
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { LogOut, Plus, Trash } from "lucide-react";
+import { Edit, LogOut, Plus, Trash } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -18,8 +18,18 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { format } from "date-fns";
+import { Badge } from "@/components/ui/badge";
 
 const Index = () => {
   const { signOut, user } = useAuth();
@@ -29,6 +39,14 @@ const Index = () => {
   const [newProgramName, setNewProgramName] = useState("");
   const [newProgramBudget, setNewProgramBudget] = useState("");
   const [newProgramDescription, setNewProgramDescription] = useState("");
+  
+  // State for edit mode
+  const [isEditing, setIsEditing] = useState(false);
+  const [editingProgram, setEditingProgram] = useState(null);
+  const [editProgramName, setEditProgramName] = useState("");
+  const [editProgramBudget, setEditProgramBudget] = useState("");
+  const [editProgramDescription, setEditProgramDescription] = useState("");
+  const [editProgramStatus, setEditProgramStatus] = useState("active");
 
   // Fetch programs
   const { data: programs, isLoading } = useQuery({
@@ -94,6 +112,58 @@ const Index = () => {
     }
   };
 
+  // Open edit dialog
+  const handleOpenEditDialog = (program) => {
+    setEditingProgram(program);
+    setEditProgramName(program.name);
+    setEditProgramBudget(program.budget.toString());
+    setEditProgramDescription(program.description || "");
+    setEditProgramStatus(program.status);
+    setIsEditing(true);
+  };
+
+  // Update program
+  const handleUpdateProgram = async () => {
+    if (!editProgramName || !editProgramBudget) {
+      toast({
+        title: "Missing information",
+        description: "Please provide both a name and budget for the program.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      const { error } = await supabase
+        .from("programs")
+        .update({
+          name: editProgramName,
+          budget: parseFloat(editProgramBudget),
+          description: editProgramDescription || null,
+          status: editProgramStatus,
+        })
+        .eq("id", editingProgram.id);
+
+      if (error) throw error;
+
+      // Reset form and refetch programs
+      setIsEditing(false);
+      setEditingProgram(null);
+      queryClient.invalidateQueries({ queryKey: ["programs"] });
+      
+      toast({
+        title: "Success",
+        description: "Program updated successfully",
+      });
+    } catch (error: any) {
+      toast({
+        title: "Error updating program",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
+  };
+
   // Delete program
   const handleDeleteProgram = async (programId: string) => {
     try {
@@ -115,6 +185,22 @@ const Index = () => {
         description: error.message,
         variant: "destructive",
       });
+    }
+  };
+
+  // Helper function to get status badge color
+  const getStatusColor = (status: string) => {
+    switch (status.toLowerCase()) {
+      case 'active':
+        return 'bg-green-100 text-green-800 hover:bg-green-200';
+      case 'completed':
+        return 'bg-blue-100 text-blue-800 hover:bg-blue-200';
+      case 'on hold':
+        return 'bg-amber-100 text-amber-800 hover:bg-amber-200';
+      case 'cancelled':
+        return 'bg-red-100 text-red-800 hover:bg-red-200';
+      default:
+        return 'bg-gray-100 text-gray-800 hover:bg-gray-200';
     }
   };
 
@@ -213,60 +299,137 @@ const Index = () => {
                 key={program.id}
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
-                className="bg-white p-6 rounded-lg shadow-sm hover:shadow-md transition-shadow"
+                className="bg-white p-6 rounded-lg shadow-sm hover:shadow-md transition-shadow border border-gray-100"
               >
                 <div className="flex justify-between items-start mb-4">
                   <h3 className="text-lg font-semibold">{program.name}</h3>
-                  <AlertDialog>
-                    <AlertDialogTrigger asChild>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="text-gray-500 hover:text-red-600"
-                      >
-                        <Trash className="h-4 w-4" />
-                      </Button>
-                    </AlertDialogTrigger>
-                    <AlertDialogContent>
-                      <AlertDialogHeader>
-                        <AlertDialogTitle>Delete Program</AlertDialogTitle>
-                        <AlertDialogDescription>
-                          Are you sure you want to delete "{program.name}"? This action
-                          cannot be undone.
-                        </AlertDialogDescription>
-                      </AlertDialogHeader>
-                      <AlertDialogFooter>
-                        <AlertDialogCancel>Cancel</AlertDialogCancel>
-                        <AlertDialogAction
-                          onClick={() => handleDeleteProgram(program.id)}
-                          className="bg-red-600 hover:bg-red-700 focus:ring-red-600"
+                  <div className="flex space-x-1">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="text-gray-500 hover:text-blue-600"
+                      onClick={() => handleOpenEditDialog(program)}
+                    >
+                      <Edit className="h-4 w-4" />
+                    </Button>
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="text-gray-500 hover:text-red-600"
                         >
-                          Delete
-                        </AlertDialogAction>
-                      </AlertDialogFooter>
-                    </AlertDialogContent>
-                  </AlertDialog>
+                          <Trash className="h-4 w-4" />
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Delete Program</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            Are you sure you want to delete "{program.name}"? This action
+                            cannot be undone.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Cancel</AlertDialogCancel>
+                          <AlertDialogAction
+                            onClick={() => handleDeleteProgram(program.id)}
+                            className="bg-red-600 hover:bg-red-700 focus:ring-red-600"
+                          >
+                            Delete
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+                  </div>
                 </div>
-                <p className="text-gray-600 mb-4">
+                <div className="mb-4">
+                  <Badge className={getStatusColor(program.status)}>
+                    {program.status.charAt(0).toUpperCase() + program.status.slice(1)}
+                  </Badge>
+                </div>
+                <p className="text-gray-800 mb-4 font-medium">
                   Budget: ${program.budget.toLocaleString()}
                 </p>
                 {program.description && (
-                  <p className="text-gray-500 text-sm mb-4">{program.description}</p>
+                  <p className="text-gray-600 mb-4 text-sm">{program.description}</p>
                 )}
-                <div className="flex justify-between items-center text-sm text-gray-500">
-                  <span>Status: {program.status}</span>
+                <div className="flex justify-between items-center text-xs text-gray-500 border-t border-gray-100 pt-3 mt-2">
                   <span>
-                    Created: {new Date(program.created_at).toLocaleDateString()}
+                    Created: {format(new Date(program.created_at), 'MMM d, yyyy')}
                   </span>
                 </div>
               </motion.div>
             ))}
           </div>
         )}
+
+        {/* Edit Program Dialog */}
+        <Dialog open={isEditing} onOpenChange={setIsEditing}>
+          <DialogContent className="sm:max-w-[425px]">
+            <DialogHeader>
+              <DialogTitle>Edit Program</DialogTitle>
+              <DialogDescription>
+                Make changes to the program details below.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4 py-4">
+              <div>
+                <Label htmlFor="edit-program-name">Program Name</Label>
+                <Input
+                  id="edit-program-name"
+                  value={editProgramName}
+                  onChange={(e) => setEditProgramName(e.target.value)}
+                  placeholder="Enter program name"
+                />
+              </div>
+              <div>
+                <Label htmlFor="edit-program-budget">Budget</Label>
+                <Input
+                  type="number"
+                  id="edit-program-budget"
+                  value={editProgramBudget}
+                  onChange={(e) => setEditProgramBudget(e.target.value)}
+                  placeholder="Enter budget amount"
+                  min="0"
+                  step="0.01"
+                />
+              </div>
+              <div>
+                <Label htmlFor="edit-program-description">Description</Label>
+                <Input
+                  id="edit-program-description"
+                  value={editProgramDescription}
+                  onChange={(e) => setEditProgramDescription(e.target.value)}
+                  placeholder="Enter program description"
+                />
+              </div>
+              <div>
+                <Label htmlFor="edit-program-status">Status</Label>
+                <select
+                  id="edit-program-status"
+                  value={editProgramStatus}
+                  onChange={(e) => setEditProgramStatus(e.target.value)}
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  <option value="active">Active</option>
+                  <option value="completed">Completed</option>
+                  <option value="on hold">On Hold</option>
+                  <option value="cancelled">Cancelled</option>
+                </select>
+              </div>
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setIsEditing(false)}>
+                Cancel
+              </Button>
+              <Button onClick={handleUpdateProgram}>Save Changes</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </main>
     </div>
   );
 };
 
 export default Index;
-
