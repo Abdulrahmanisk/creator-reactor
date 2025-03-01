@@ -32,12 +32,14 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { useNavigate } from "react-router-dom";
 
+type ExpenseCategory = "Equipment" | "Professional Services" | "Travel" | "Supplies" | "Other";
+
 type Expense = {
   id: string;
   amount: number;
   description: string;
   date: string;
-  category: string;
+  category: ExpenseCategory;
   payment_method: string;
   payee: string;
   program_id: string | null;
@@ -62,7 +64,7 @@ const Expenses = () => {
     amount: "",
     description: "",
     date: new Date().toISOString().split('T')[0],
-    category: "Office Supplies",
+    category: "Equipment" as ExpenseCategory,
     payment_method: "Credit Card",
     payee: "",
     program_id: "",
@@ -90,14 +92,14 @@ const Expenses = () => {
             name
           )
         `)
-        .order("date", { ascending: false });
+        .order("created_at", { ascending: false });
 
       if (filterProgramId) {
         query = query.eq("program_id", filterProgramId);
       }
 
       if (filterCategory) {
-        query = query.eq("category", filterCategory);
+        query = query.eq("category", filterCategory as ExpenseCategory);
       }
 
       const { data, error } = await query;
@@ -107,10 +109,12 @@ const Expenses = () => {
         throw error;
       }
 
-      // Transform the data to include program_name
+      // Transform the data to include program_name and map approval_status to status
       return data.map(expense => ({
         ...expense,
-        program_name: expense.programs?.name || null
+        program_name: expense.programs?.name || null,
+        date: expense.created_at.split('T')[0], // Use created_at as the date
+        status: expense.approval_status || "pending" // Map approval_status to status
       })) as Expense[];
     },
   });
@@ -142,7 +146,13 @@ const Expenses = () => {
       const { data, error } = await supabase
         .from("expenses")
         .insert({
-          ...newExpenseData,
+          amount: parseFloat(newExpenseData.amount),
+          description: newExpenseData.description,
+          category: newExpenseData.category as ExpenseCategory,
+          payment_method: newExpenseData.payment_method,
+          payee: newExpenseData.payee,
+          program_id: newExpenseData.program_id || null,
+          approval_status: newExpenseData.status,
           user_id: user?.id,
         })
         .select();
@@ -157,7 +167,7 @@ const Expenses = () => {
         amount: "",
         description: "",
         date: new Date().toISOString().split('T')[0],
-        category: "Office Supplies",
+        category: "Equipment" as ExpenseCategory,
         payment_method: "Credit Card",
         payee: "",
         program_id: "",
@@ -173,10 +183,14 @@ const Expenses = () => {
   // Update mutation
   const updateMutation = useMutation({
     mutationFn: async (updatedExpense: any) => {
-      const { id, ...expenseData } = updatedExpense;
+      const { id, date, program_name, status, ...expenseData } = updatedExpense;
       const { data, error } = await supabase
         .from("expenses")
-        .update(expenseData)
+        .update({
+          ...expenseData,
+          approval_status: status, // Map status to approval_status for database
+          category: expenseData.category as ExpenseCategory
+        })
         .eq("id", id)
         .select();
 
@@ -220,10 +234,7 @@ const Expenses = () => {
       return;
     }
 
-    createMutation.mutate({
-      ...newExpense,
-      amount: parseFloat(newExpense.amount),
-    });
+    createMutation.mutate(newExpense);
   };
 
   const handleUpdateExpense = () => {
@@ -399,17 +410,14 @@ const Expenses = () => {
                   <select
                     id="category"
                     value={newExpense.category}
-                    onChange={(e) => setNewExpense({ ...newExpense, category: e.target.value })}
+                    onChange={(e) => setNewExpense({ ...newExpense, category: e.target.value as ExpenseCategory })}
                     className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                     required
                   >
-                    <option value="Office Supplies">Office Supplies</option>
                     <option value="Equipment">Equipment</option>
                     <option value="Professional Services">Professional Services</option>
                     <option value="Travel">Travel</option>
-                    <option value="Utilities">Utilities</option>
-                    <option value="Rent">Rent</option>
-                    <option value="Software">Software</option>
+                    <option value="Supplies">Supplies</option>
                     <option value="Other">Other</option>
                   </select>
                 </div>
@@ -634,16 +642,13 @@ const Expenses = () => {
                     <select
                       id="edit-category"
                       value={editingExpense.category}
-                      onChange={(e) => setEditingExpense({ ...editingExpense, category: e.target.value })}
+                      onChange={(e) => setEditingExpense({ ...editingExpense, category: e.target.value as ExpenseCategory })}
                       className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                     >
-                      <option value="Office Supplies">Office Supplies</option>
                       <option value="Equipment">Equipment</option>
                       <option value="Professional Services">Professional Services</option>
                       <option value="Travel">Travel</option>
-                      <option value="Utilities">Utilities</option>
-                      <option value="Rent">Rent</option>
-                      <option value="Software">Software</option>
+                      <option value="Supplies">Supplies</option>
                       <option value="Other">Other</option>
                     </select>
                   </div>
