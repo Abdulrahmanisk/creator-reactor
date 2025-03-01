@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { Edit, LogOut, Plus, Trash } from "lucide-react";
@@ -201,6 +202,9 @@ function Index() {
       <div className="flex justify-between items-center mb-8">
         <h1 className="text-3xl font-bold">Grant Management Dashboard</h1>
         <div className="flex items-center space-x-4">
+          <Button variant="outline" onClick={() => navigate("/dashboard")}>
+            Dashboard
+          </Button>
           <Button variant="outline" onClick={() => navigate("/expenses")}>
             Expenses
           </Button>

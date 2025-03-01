@@ -9,6 +9,7 @@ import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 import Expenses from "./pages/Expenses";
 import Funding from "./pages/Funding";
+import Dashboard from "./pages/Dashboard";
 import "./App.css";
 
 const queryClient = new QueryClient();
@@ -41,6 +42,14 @@ function App() {
               element={
                 <ProtectedRoute>
                   <Funding />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/dashboard"
+              element={
+                <ProtectedRoute>
+                  <Dashboard />
                 </ProtectedRoute>
               }
             />
