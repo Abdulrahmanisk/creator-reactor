@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useNavigate } from "react-router-dom";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -35,6 +36,7 @@ const Index = () => {
   const { signOut, user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
   const [isCreating, setIsCreating] = useState(false);
   const [newProgramName, setNewProgramName] = useState("");
   const [newProgramBudget, setNewProgramBudget] = useState("");
@@ -210,7 +212,13 @@ const Index = () => {
       <nav className="bg-white border-b">
         <div className="container mx-auto px-4 py-4">
           <div className="flex justify-between items-center">
-            <h1 className="text-xl font-semibold">Program Management</h1>
+            <div className="flex items-center space-x-8">
+              <h1 className="text-xl font-semibold">Accounting App</h1>
+              <div className="hidden md:flex space-x-4">
+                <Button variant="ghost" className="font-medium text-blue-600">Programs</Button>
+                <Button variant="ghost" onClick={() => navigate('/expenses')}>Expenses</Button>
+              </div>
+            </div>
             <Button
               variant="ghost"
               onClick={() => signOut()}
