@@ -319,14 +319,14 @@ export default function Funding() {
                 <div className="grid grid-cols-4 items-center gap-4">
                   <Label htmlFor="program_id" className="text-right">Program</Label>
                   <Select
-                    value={formData.program_id}
-                    onValueChange={(value) => handleSelectChange("program_id", value)}
+                    value={formData.program_id || "none"}
+                    onValueChange={(value) => handleSelectChange("program_id", value === "none" ? "" : value)}
                   >
                     <SelectTrigger className="col-span-3">
                       <SelectValue placeholder="Select program (optional)" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">No Program</SelectItem>
+                      <SelectItem value="none">No Program</SelectItem>
                       {programs?.map((program) => (
                         <SelectItem key={program.id} value={program.id}>
                           {program.name}
@@ -488,14 +488,14 @@ export default function Funding() {
               <div className="grid grid-cols-4 items-center gap-4">
                 <Label htmlFor="edit-program" className="text-right">Program</Label>
                 <Select
-                  value={formData.program_id || ""}
-                  onValueChange={(value) => handleSelectChange("program_id", value)}
+                  value={formData.program_id || "none"}
+                  onValueChange={(value) => handleSelectChange("program_id", value === "none" ? "" : value)}
                 >
                   <SelectTrigger className="col-span-3">
                     <SelectValue placeholder="Select program (optional)" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">No Program</SelectItem>
+                    <SelectItem value="none">No Program</SelectItem>
                     {programs?.map((program) => (
                       <SelectItem key={program.id} value={program.id}>
                         {program.name}
