@@ -8,6 +8,7 @@ import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 import Expenses from "./pages/Expenses";
+import Funding from "./pages/Funding";
 import "./App.css";
 
 const queryClient = new QueryClient();
@@ -32,6 +33,14 @@ function App() {
               element={
                 <ProtectedRoute>
                   <Expenses />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/funding"
+              element={
+                <ProtectedRoute>
+                  <Funding />
                 </ProtectedRoute>
               }
             />
