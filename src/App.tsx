@@ -10,6 +10,7 @@ import NotFound from "./pages/NotFound";
 import Expenses from "./pages/Expenses";
 import Funding from "./pages/Funding";
 import Dashboard from "./pages/Dashboard";
+import Profile from "./pages/Profile";
 import "./App.css";
 
 const queryClient = new QueryClient();
@@ -50,6 +51,14 @@ function App() {
               element={
                 <ProtectedRoute>
                   <Dashboard />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/profile"
+              element={
+                <ProtectedRoute>
+                  <Profile />
                 </ProtectedRoute>
               }
             />
