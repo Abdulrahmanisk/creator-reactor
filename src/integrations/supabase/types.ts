@@ -177,7 +177,26 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      get_expenses_by_category: {
+        Args: {
+          user_id_param: string
+        }
+        Returns: {
+          category: string
+          total: number
+          count: number
+        }[]
+      }
+      get_funding_by_type: {
+        Args: {
+          user_id_param: string
+        }
+        Returns: {
+          type: string
+          total: number
+          count: number
+        }[]
+      }
     }
     Enums: {
       expense_category:

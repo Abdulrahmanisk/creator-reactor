@@ -1,3 +1,4 @@
+
 import React from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/contexts/AuthContext";
@@ -49,7 +50,7 @@ const Dashboard = () => {
       const { data, error } = await supabase
         .from("programs")
         .select("*")
-        .eq("user_id", user?.id)
+        .eq("user_id", user?.id ?? '')
         .order("created_at", { ascending: false });
         
       if (error) throw error;
@@ -62,43 +63,43 @@ const Dashboard = () => {
   const { data: expensesByCategory } = useQuery({
     queryKey: ["expenses-by-category"],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .rpc("get_expenses_by_category", { user_id_param: user?.id })
-        .catch(() => {
-          // If the function doesn't exist, do a manual query
-          return supabase
-            .from("expenses")
-            .select("category, amount")
-            .eq("user_id", user?.id);
+      try {
+        const { data, error } = await supabase
+          .rpc("get_expenses_by_category", { user_id_param: user?.id });
+          
+        if (error) throw error;
+        return data as ExpenseSummary[];
+      } catch (rpcError) {
+        // If RPC fails, fall back to manual query
+        console.error("RPC error, falling back to manual query:", rpcError);
+        const { data, error } = await supabase
+          .from("expenses")
+          .select("category, amount")
+          .eq("user_id", user?.id ?? '');
+          
+        if (error) throw error;
+        
+        // Transform the data manually
+        const summary: Record<string, { total: number; count: number }> = {};
+        
+        data?.forEach((expense: any) => {
+          const category = expense.category;
+          const amount = parseFloat(expense.amount);
+          
+          if (!summary[category]) {
+            summary[category] = { total: 0, count: 0 };
+          }
+          
+          summary[category].total += amount;
+          summary[category].count += 1;
         });
         
-      if (error) throw error;
-      
-      // If we used the RPC, we're getting the exact format we want
-      if (data && data[0] && 'total' in data[0]) {
-        return data as ExpenseSummary[];
+        return Object.entries(summary).map(([category, { total, count }]) => ({
+          category,
+          total,
+          count,
+        })) as ExpenseSummary[];
       }
-      
-      // Otherwise, we need to transform the data
-      const summary: Record<string, { total: number; count: number }> = {};
-      
-      data?.forEach((expense: any) => {
-        const category = expense.category;
-        const amount = parseFloat(expense.amount);
-        
-        if (!summary[category]) {
-          summary[category] = { total: 0, count: 0 };
-        }
-        
-        summary[category].total += amount;
-        summary[category].count += 1;
-      });
-      
-      return Object.entries(summary).map(([category, { total, count }]) => ({
-        category,
-        total,
-        count,
-      })) as ExpenseSummary[];
     },
     enabled: !!user,
   });
@@ -107,43 +108,43 @@ const Dashboard = () => {
   const { data: fundingByType } = useQuery({
     queryKey: ["funding-by-type"],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .rpc("get_funding_by_type", { user_id_param: user?.id })
-        .catch(() => {
-          // If the function doesn't exist, do a manual query
-          return supabase
-            .from("funding")
-            .select("type, amount")
-            .eq("user_id", user?.id);
+      try {
+        const { data, error } = await supabase
+          .rpc("get_funding_by_type", { user_id_param: user?.id });
+          
+        if (error) throw error;
+        return data as FundingSummary[];
+      } catch (rpcError) {
+        // If RPC fails, fall back to manual query
+        console.error("RPC error, falling back to manual query:", rpcError);
+        const { data, error } = await supabase
+          .from("funding")
+          .select("type, amount")
+          .eq("user_id", user?.id ?? '');
+          
+        if (error) throw error;
+        
+        // Transform the data manually
+        const summary: Record<string, { total: number; count: number }> = {};
+        
+        data?.forEach((funding: any) => {
+          const type = funding.type;
+          const amount = parseFloat(funding.amount);
+          
+          if (!summary[type]) {
+            summary[type] = { total: 0, count: 0 };
+          }
+          
+          summary[type].total += amount;
+          summary[type].count += 1;
         });
         
-      if (error) throw error;
-      
-      // If we used the RPC, we're getting the exact format we want
-      if (data && data[0] && 'total' in data[0]) {
-        return data as FundingSummary[];
+        return Object.entries(summary).map(([type, { total, count }]) => ({
+          type,
+          total,
+          count,
+        })) as FundingSummary[];
       }
-      
-      // Otherwise, we need to transform the data
-      const summary: Record<string, { total: number; count: number }> = {};
-      
-      data?.forEach((funding: any) => {
-        const type = funding.type;
-        const amount = parseFloat(funding.amount);
-        
-        if (!summary[type]) {
-          summary[type] = { total: 0, count: 0 };
-        }
-        
-        summary[type].total += amount;
-        summary[type].count += 1;
-      });
-      
-      return Object.entries(summary).map(([type, { total, count }]) => ({
-        type,
-        total,
-        count,
-      })) as FundingSummary[];
     },
     enabled: !!user,
   });
@@ -156,7 +157,7 @@ const Dashboard = () => {
       const { data: programs, error: programsError } = await supabase
         .from("programs")
         .select("*")
-        .eq("user_id", user?.id);
+        .eq("user_id", user?.id ?? '');
         
       if (programsError) throw programsError;
       
@@ -181,19 +182,19 @@ const Dashboard = () => {
           
           // Calculate totals
           const totalExpenses = expenses.reduce(
-            (sum, item) => sum + parseFloat(item.amount),
+            (sum, item) => sum + (typeof item.amount === 'string' ? parseFloat(item.amount) : item.amount),
             0
           );
           
           const totalFunding = funding.reduce(
-            (sum, item) => sum + parseFloat(item.amount),
+            (sum, item) => sum + (typeof item.amount === 'string' ? parseFloat(item.amount) : item.amount),
             0
           );
           
           return {
             id: program.id,
             name: program.name,
-            budget: parseFloat(program.budget),
+            budget: parseFloat(program.budget.toString()),
             expenses: totalExpenses,
             funding: totalFunding,
             status: program.status,

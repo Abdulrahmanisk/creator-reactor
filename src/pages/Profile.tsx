@@ -44,15 +44,15 @@ const Profile = () => {
       
       return data;
     },
-    onSuccess: (data) => {
+    enabled: !!user,
+    onSettled: (data) => {
       if (data) {
         setFormData({
           display_name: data.display_name || "",
           theme_preference: data.theme_preference || "light",
         });
       }
-    },
-    enabled: !!user,
+    }
   });
 
   // Update profile mutation
@@ -182,7 +182,7 @@ const Profile = () => {
                   )}
                   <AvatarFallback className="text-lg">
                     {profile?.display_name?.charAt(0)?.toUpperCase() || 
-                     user?.email?.charAt(0).toUpperCase() || <User />}
+                     user?.email?.charAt(0)?.toUpperCase() || <User />}
                   </AvatarFallback>
                 </Avatar>
                 <Button 
