@@ -180,16 +180,31 @@ const Expenses = () => {
     },
   });
 
-  // Update mutation
+  // Update mutation - fixed to not send the programs field and only update what's needed
   const updateMutation = useMutation({
     mutationFn: async (updatedExpense: any) => {
-      const { id, date, program_name, status, ...expenseData } = updatedExpense;
+      // Extract only the fields we need to update
+      const { 
+        id, 
+        amount, 
+        description, 
+        category, 
+        payment_method, 
+        payee, 
+        program_id,
+        status 
+      } = updatedExpense;
+      
       const { data, error } = await supabase
         .from("expenses")
         .update({
-          ...expenseData,
-          approval_status: status, // Map status to approval_status for database
-          category: expenseData.category as ExpenseCategory
+          amount,
+          description,
+          category,
+          payment_method,
+          payee,
+          program_id,
+          approval_status: status // Map status to approval_status for database
         })
         .eq("id", id)
         .select();
@@ -271,6 +286,11 @@ const Expenses = () => {
     queryClient.invalidateQueries({ queryKey: ["expenses"] });
   };
 
+  // Navigation functions
+  const navigateToPrograms = () => {
+    navigate('/programs');
+  };
+
   return (
     <div className="min-h-screen w-full bg-gray-50">
       {/* Navigation */}
@@ -280,8 +300,11 @@ const Expenses = () => {
             <div className="flex items-center space-x-8">
               <h1 className="text-xl font-semibold">Accounting App</h1>
               <div className="hidden md:flex space-x-4">
-                <Button variant="ghost" onClick={() => navigate('/')}>Programs</Button>
+                <Button variant="ghost" onClick={() => navigate('/')}>Home</Button>
+                <Button variant="ghost" onClick={navigateToPrograms}>Programs</Button>
                 <Button variant="ghost" className="font-medium text-blue-600">Expenses</Button>
+                <Button variant="ghost" onClick={() => navigate('/funding')}>Funding</Button>
+                <Button variant="ghost" onClick={() => navigate('/dashboard')}>Dashboard</Button>
               </div>
             </div>
             <Button
