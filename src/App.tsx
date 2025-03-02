@@ -12,6 +12,7 @@ import Expenses from "./pages/Expenses";
 import Funding from "./pages/Funding";
 import Dashboard from "./pages/Dashboard";
 import Profile from "./pages/Profile";
+import Programs from "./pages/Programs";
 import "./App.css";
 
 // Create a query client
@@ -50,6 +51,16 @@ function App() {
                 <ProtectedRoute>
                   <Layout>
                     <Funding />
+                  </Layout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/programs"
+              element={
+                <ProtectedRoute>
+                  <Layout>
+                    <Programs />
                   </Layout>
                 </ProtectedRoute>
               }

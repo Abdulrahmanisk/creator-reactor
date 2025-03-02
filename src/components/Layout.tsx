@@ -12,7 +12,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { LogOut, User, Moon, Sun } from "lucide-react";
+import { LogOut, User, Moon, Sun, FolderOpen } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -92,6 +92,12 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
                 className="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
               >
                 Home
+              </Link>
+              <Link
+                to="/programs"
+                className="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
+              >
+                Programs
               </Link>
               <Link
                 to="/expenses"
@@ -186,4 +192,4 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
       </footer>
     </div>
   );
-};
+}

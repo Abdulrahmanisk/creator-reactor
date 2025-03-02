@@ -4,7 +4,7 @@ import { Link } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
-import { PlusCircle, DollarSign, BarChart2, User } from "lucide-react";
+import { PlusCircle, DollarSign, BarChart2, User, FolderOpen } from "lucide-react";
 
 const Index = () => {
   const { user } = useAuth();
@@ -13,12 +13,35 @@ const Index = () => {
     <div className="container mx-auto px-4 py-8">
       <div className="mb-8">
         <h1 className="text-3xl font-bold">Welcome to Budget Management</h1>
-        <p className="text-gray-600 mt-2">
-          Manage your expenses, funding sources, and track your financial progress
+        <p className="text-gray-600 mt-2 dark:text-gray-400">
+          Manage your programs, expenses, funding sources, and track your financial progress
         </p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center">
+              <FolderOpen className="mr-2 h-5 w-5" />
+              Programs
+            </CardTitle>
+            <CardDescription>
+              Manage your programs
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <p>Create and manage programs, set budgets, and track timelines.</p>
+          </CardContent>
+          <CardFooter>
+            <Button asChild className="w-full">
+              <Link to="/programs">
+                <PlusCircle className="mr-2 h-4 w-4" />
+                Manage Programs
+              </Link>
+            </Button>
+          </CardFooter>
+        </Card>
+
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center">
