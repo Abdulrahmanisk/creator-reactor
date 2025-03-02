@@ -4,6 +4,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { AuthProvider } from "./contexts/AuthContext";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import { Toaster } from "sonner";
+import { Layout } from "./components/Layout";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
@@ -13,6 +14,7 @@ import Dashboard from "./pages/Dashboard";
 import Profile from "./pages/Profile";
 import "./App.css";
 
+// Create a query client
 const queryClient = new QueryClient();
 
 function App() {
@@ -26,7 +28,9 @@ function App() {
               path="/"
               element={
                 <ProtectedRoute>
-                  <Index />
+                  <Layout>
+                    <Index />
+                  </Layout>
                 </ProtectedRoute>
               }
             />
@@ -34,7 +38,9 @@ function App() {
               path="/expenses"
               element={
                 <ProtectedRoute>
-                  <Expenses />
+                  <Layout>
+                    <Expenses />
+                  </Layout>
                 </ProtectedRoute>
               }
             />
@@ -42,7 +48,9 @@ function App() {
               path="/funding"
               element={
                 <ProtectedRoute>
-                  <Funding />
+                  <Layout>
+                    <Funding />
+                  </Layout>
                 </ProtectedRoute>
               }
             />
@@ -50,7 +58,9 @@ function App() {
               path="/dashboard"
               element={
                 <ProtectedRoute>
-                  <Dashboard />
+                  <Layout>
+                    <Dashboard />
+                  </Layout>
                 </ProtectedRoute>
               }
             />
@@ -58,7 +68,9 @@ function App() {
               path="/profile"
               element={
                 <ProtectedRoute>
-                  <Profile />
+                  <Layout>
+                    <Profile />
+                  </Layout>
                 </ProtectedRoute>
               }
             />
