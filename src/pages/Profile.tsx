@@ -45,7 +45,7 @@ const Profile = () => {
       return data;
     },
     enabled: !!user,
-    onSettled: (data) => {
+    onSuccess: (data) => {
       if (data) {
         setFormData({
           display_name: data.display_name || "",
